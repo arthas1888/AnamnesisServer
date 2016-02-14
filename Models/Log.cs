@@ -40,10 +40,14 @@ namespace AnamnesisServer.Models
 
         public String User { get; set; }
 
-        public String Role { get; set; }
+        public String Role { get; set; }        
 
         public String Browser { get; set; }
 
         public String Request { get; set; }
+
+        public String Id_object { get; set; }
+
+        public String Name { get; set; }
     }
 }

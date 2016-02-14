@@ -48,6 +48,12 @@ namespace AnamnesisServer.Controllers
                 logView.Role = log.Role;
                 logView.Browser = log.Browser;
                 logView.Request = log.Request;
+                if (log.Info != null)
+                {
+                    String[] obj = log.Info.Split(',');
+                    logView.Id_object = obj[0];
+                    logView.Name = obj[1];
+                }
                 logViewList.Add(logView);
             }
 
@@ -79,6 +85,7 @@ namespace AnamnesisServer.Controllers
             foreach (Log log in db.Log.Where(e => e.Date >= dtfromDate && e.Date <= dtToDate))
             {
                 LogView logView = new LogView();
+                logView.dateTime = (DateTime)log.Date;
                 logView.Date = ((DateTime)log.Date).ToString("yyyy/MM/dd");
                 logView.Time = ((DateTime)log.Date).ToString("hh:mm:ss");
                 logView.Action = log.Action;
@@ -87,6 +94,12 @@ namespace AnamnesisServer.Controllers
                 logView.Role = log.Role;
                 logView.Browser = log.Browser;
                 logView.Request = log.Request;
+                if (log.Info != null)
+                {
+                    String[] obj = log.Info.Split(',');
+                    logView.Id_object = obj[0];
+                    logView.Name = obj[1];
+                }
                 logViewList.Add(logView);
             }
 
@@ -104,6 +117,7 @@ namespace AnamnesisServer.Controllers
             foreach (Log log in db.Log.Where(e => e.Date >= dtfromDate && e.Date <= dtToDate && e.User == user))
             {
                 LogView logView = new LogView();
+                logView.dateTime = (DateTime)log.Date;
                 logView.Date = ((DateTime)log.Date).ToString("yyyy/MM/dd");
                 logView.Time = ((DateTime)log.Date).ToString("hh:mm:ss");
                 logView.Action = log.Action;
@@ -112,6 +126,12 @@ namespace AnamnesisServer.Controllers
                 logView.Role = log.Role;
                 logView.Browser = log.Browser;
                 logView.Request = log.Request;
+                if (log.Info != null)
+                {
+                    String[] obj = log.Info.Split(',');
+                    logView.Id_object = obj[0];
+                    logView.Name = obj[1];
+                };
                 logViewList.Add(logView);
             }
 

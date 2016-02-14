@@ -87,22 +87,32 @@ namespace AnamnesisServer.Controllers
 
             List<FlatUserModel> logins = new List<FlatUserModel>();
 
+            var userManager = HttpContext.Current.GetOwinContext().GetUserManager<ApplicationUserManager>();
+            ApplicationUser current_user = userManager.FindById(User.Identity.GetUserId());
+            if (current_user == null)
+            {
+                return logins;
+            }
+
             foreach (ApplicationUser user in UserManager.Users)
             {
                 String userRoles = GetUserRole(user);
-                logins.Add(new FlatUserModel
+                if (!(UserManager.FindById(user.Id) == UserManager.FindById(current_user.Id)))
                 {
-                    Id = user.Id,
-                    Name = user.Name,
-                    LastName = user.LastName,
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    City = user.City,
-                    Address = user.Address,
-                    Number = user.Number,
-                    CreateDate = user.CreateDate,
-                    Role = userRoles
-                });
+                    logins.Add(new FlatUserModel
+                    {
+                        Id = user.Id,
+                        Name = user.Name,
+                        LastName = user.LastName,
+                        UserName = user.UserName,
+                        Email = user.Email,
+                        City = user.City,
+                        Address = user.Address,
+                        Number = user.Number,
+                        CreateDate = user.CreateDate,
+                        Role = userRoles
+                    });
+                }
             }
 
             return logins;
@@ -193,9 +203,9 @@ namespace AnamnesisServer.Controllers
         // POST api/Account/Logout
         [Route("Logout")]
         public IHttpActionResult Logout()
-        {
-            Authentication.SignOut(CookieAuthenticationDefaults.AuthenticationType);
+        {            
             new LogsController().AddLog(LogsController.LOGOUT, modelo);
+            Authentication.SignOut(CookieAuthenticationDefaults.AuthenticationType);
             return Ok();
         }
 
@@ -487,6 +497,55 @@ namespace AnamnesisServer.Controllers
                 UserManager.AddToRole(userModel.Id, usersRole.Name);
             }
             new LogsController().AddLog(LogsController.CREATE, modelo, userModel);
+            return Ok();
+        }
+
+
+        // POST api/Account/EditUser
+        [Route("EditUser")]
+        //[AllowAnonymous]
+        [Authorize(Roles = "Admin")]
+        public async Task<IHttpActionResult> EditUser(EditBindingModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ApplicationUser userModel = await UserManager.FindByIdAsync(model.Id);
+            userModel.Email = model.Email;
+            userModel.UserName = model.Email;
+            userModel.Name = model.Name;
+            userModel.LastName = model.LastName;
+            userModel.City = model.City;
+            userModel.Address = model.Address;
+            userModel.Number = model.Number;
+
+            IdentityResult result = await UserManager.UpdateAsync(userModel);
+
+            // Add user to Role Users if not already added
+            var roleManager = HttpContext.Current
+                .GetOwinContext().Get<ApplicationRoleManager>();
+
+            var usersRole = roleManager.FindByName("Users");
+            if (model.Role == 2)
+            {
+                usersRole = roleManager.FindByName("Admin");
+            }
+
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
+            
+            
+            var rolesForUser = UserManager.GetRoles(userModel.Id);
+            if (!rolesForUser.Contains(usersRole.Name))
+            {
+                UserManager.RemoveFromRole(userModel.Id, usersRole.Name);
+                UserManager.AddToRole(userModel.Id, usersRole.Name);
+            }
+            new LogsController().AddLog(LogsController.EDIT, modelo, userModel);
             return Ok();
         }
 
